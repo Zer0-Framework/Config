@@ -64,8 +64,18 @@ class Section implements ConfigInterface
                 $loadedFiles[] = $file;
             }
             $data = \yaml_parse_file($file, 0, $ndocs, [
-                '!env' => function ($value, string $tag, int $flags) {
-                    return getenv($value);
+                '!env' => function ($str) {
+                    foreach (explode('||', $str) as $alt) {
+                        $alt = trim($alt);
+                        if (ctype_alpha(substr($alt, 0,  1))) {
+                            $value = $_ENV[$alt] ?? null;
+                        } else {
+                            $value = yaml_parse($alt);
+                        }
+                        if ($value !== null) {
+                            return $value;
+                        }
+                    }
                 }
             ]);
             if ($data === false) {
