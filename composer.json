@@ -1,8 +1,8 @@
 {
-    "name"  : "Zer0-Framework/Config",
+    "name"  : "zer0-framework/config",
     "type"  : "library",
     "keywords": ["Zer0", "highload"],
-    "homepage": "https://github.com/Zer0-Framework/Config",
+    "homepage": "https://github.com/zer0-framework/config",
     "license" : "GPL-3.0-or-later",
     "description": "",
     "authors" : [
@@ -14,12 +14,12 @@
     ],
     "support" : {
         "email" : "kak.serpom.po.yaitsam@gmail.com",
-        "issues": "https://github.com/Zer0-Framework/Config/issues"
+        "issues": "https://github.com/zer0-framework/config/issues"
     },
     "require": {
         "php": ">=7.2",
         "ext-yaml": "*",
-        "Zer0-Framework/Zer0": "*"
+        "zer0-framework/core": "*"
     },
     "autoload": {
         "classmap": ["src/"]
