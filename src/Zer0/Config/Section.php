@@ -38,6 +38,9 @@ class Section implements ConfigInterface
      */
     protected $env;
 
+    /**
+     * @var array
+     */
     protected $loadedFiles;
 
     /**
@@ -171,10 +174,17 @@ class Section implements ConfigInterface
     }
 
     /**
-     *
+     * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->data;
+    }
+
+    /**
+     * @return bool
+     */
+    public function exists(): bool {
+        return count($this->data) > 0;
     }
 }

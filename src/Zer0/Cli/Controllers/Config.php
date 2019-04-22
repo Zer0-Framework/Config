@@ -69,9 +69,9 @@ final class Config extends AbstractController
         ];
 
         $this->cli->write(str_repeat("|\t", $level) . ($level > 0 ? ($n > 0 ? '|' : '\\') . str_repeat(
-            '—',
+                    '—',
                     $level + 1
-        ) . ' ' : ''), $styleScheme['tree']);
+                ) . ' ' : ''), $styleScheme['tree']);
         $this->cli->writeln($key, $styleScheme['section']);
         $i = 0;
         foreach ($value->sectionsList() as $subKey) {
@@ -96,9 +96,9 @@ final class Config extends AbstractController
                 }
 
                 $this->cli->write(str_repeat("|\t", $level) . ($level > 0 ? ($i > 0 ? '|' : '\\') . str_repeat(
-                    '—',
+                            '—',
                             $level + 1
-                ) . ' ' : ''), $styleScheme['tree']);
+                        ) . ' ' : ''), $styleScheme['tree']);
 
                 $this->cli->write($subKey, $styleScheme['item']);
                 $this->cli->write(': ', $styleScheme['colon']);
@@ -115,6 +115,21 @@ final class Config extends AbstractController
             if (!$first) {
                 $this->cli->writeln('');
             }
+        }
+    }
+
+    /**
+     *
+     */
+    public function fmtAction(): void
+    {
+        $files = explode("\n", rtrim(shell_exec(
+            'find ' . join(' ', array_map('escapeshellarg', $this->app->config->getPath()))
+            . ' -name "*.yaml" -o -name "*.yml"'
+        )));
+        foreach ($files as $file) {
+            yaml_emit_file($file,  yaml_parse_file($file), YAML_UTF8_ENCODING);
+            $this->cli->successLine($file);
         }
     }
 }

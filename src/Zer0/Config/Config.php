@@ -68,11 +68,11 @@ class Config implements ConfigInterface
         $F = substr($name, 0, 1);
         if (strtoupper($F) === $F) {
             return $this->sections[$name] ?? ($this->sections[$name] = new Section(
-                $this,
-                $name,
-                $this->env,
+                    $this,
+                    $name,
+                    $this->env,
                     $this->loadedFiles
-            ));
+                ));
         }
         return $this->Main->{$name};
     }
@@ -99,5 +99,13 @@ class Config implements ConfigInterface
     public function getPath(): array
     {
         return $this->path;
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [];
     }
 }

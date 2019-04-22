@@ -13,4 +13,9 @@ interface ConfigInterface
      * @return mixed
      */
     public function __get(string $name);
+
+    /**
+     * @return array
+     */
+    public function toArray(): array;
 }
