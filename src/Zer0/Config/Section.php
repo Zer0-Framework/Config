@@ -4,6 +4,7 @@ namespace Zer0\Config;
 
 use Zer0\Config\Exceptions\BadFile;
 use Zer0\Config\Exceptions\UnableToReadConfigFile;
+use Zer0\Config\Exceptions\YamlParseError;
 use Zer0\Config\Interfaces\ConfigInterface;
 
 /**
@@ -66,21 +67,25 @@ class Section implements ConfigInterface
             if ($loadedFiles !== null) {
                 $loadedFiles[] = $file;
             }
-            $data = \yaml_parse_file($file, 0, $ndocs, [
-                '!env' => function ($str) {
-                    foreach (explode('||', $str) as $alt) {
-                        $alt = trim($alt);
-                        if (ctype_alpha(substr($alt, 0,  1))) {
-                            $value = $_ENV[$alt] ?? null;
-                        } else {
-                            $value = yaml_parse($alt);
-                        }
-                        if ($value !== null) {
-                            return $value;
+            try {
+                $data = \yaml_parse_file($file, 0, $ndocs, [
+                    '!env' => function ($str) {
+                        foreach (explode('||', $str) as $alt) {
+                            $alt = trim($alt);
+                            if (ctype_alpha(substr($alt, 0, 1))) {
+                                $value = $_ENV[$alt] ?? null;
+                            } else {
+                                $value = yaml_parse($alt);
+                            }
+                            if ($value !== null) {
+                                return $value;
+                            }
                         }
                     }
-                }
-            ]);
+                ]);
+            } catch (\ErrorException $e) {
+                throw YamlParseError::deriveFromError($e);
+            }
             if ($data === false) {
                 throw new UnableToReadConfigFile(substr($file, strlen(ZERO_ROOT)));
             }
