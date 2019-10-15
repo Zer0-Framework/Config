@@ -81,7 +81,10 @@ class Section implements ConfigInterface
                                 return $value;
                             }
                         }
-                    }
+                    },
+                    '!path' => function ($str) {
+                        return ZERO_ROOT . '/' . ltrim($str, '/');
+                    },
                 ]);
             } catch (\ErrorException $e) {
                 throw YamlParseError::deriveFromError($e);
@@ -189,7 +192,8 @@ class Section implements ConfigInterface
     /**
      * @return bool
      */
-    public function exists(): bool {
+    public function exists(): bool
+    {
         return count($this->data) > 0;
     }
 }
