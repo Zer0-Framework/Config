@@ -106,6 +106,10 @@ class Config implements ConfigInterface
      */
     public function toArray(): array
     {
-        return [];
+        $ret = [];
+        foreach ($this->sectionsList() as $section) {
+            $ret[$section] = $this->{$section}->toArray();
+        }
+        return $ret;
     }
 }

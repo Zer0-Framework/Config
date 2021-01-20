@@ -18,10 +18,32 @@ final class Config extends AbstractController
      */
     protected $command = 'config';
 
+
+    /**
+     * @param mixed ...$args
+     */
+    public function yamlAction(...$args): void
+    {
+        [$key, $value] = $this->getSubTree(...$args);
+        echo yaml_emit($value->toArray());
+    }
+
     /**
      * @param mixed ...$args
      */
     public function treeAction(...$args): void
+    {
+        [$key, $value, $filter] = $this->getSubTree(...$args);
+        $this->drawLevel($key, $value, 0, 0, $filter);
+    }
+
+
+    /**
+     * @param mixed ...$args
+     * @return array
+     * @throws InvalidArgument
+     */
+    protected function getSubTree(...$args)
     {
         $key = $this->app->env;
         $value = $this->app->config;
@@ -48,7 +70,8 @@ final class Config extends AbstractController
         if ($i < $count) {
             throw new InvalidArgument($args[$i] . ': key/section not found 😞');
         }
-        $this->drawLevel($key, $value, 0, 0, $filter);
+
+        return [$key, $value, $filter];
     }
 
     /**
@@ -83,7 +106,6 @@ final class Config extends AbstractController
             $first = true;
             foreach ($value->toArray() as $subKey => $subValue) {
                 if ($filter !== null) {
-
                     if (!fnmatch($filter, $subKey)) {
                         continue;
                     }
@@ -128,7 +150,7 @@ final class Config extends AbstractController
             . ' -name "*.yaml" -o -name "*.yml"'
         )));
         foreach ($files as $file) {
-            yaml_emit_file($file,  yaml_parse_file($file), YAML_UTF8_ENCODING);
+            yaml_emit_file($file, yaml_parse_file($file), YAML_UTF8_ENCODING);
             $this->cli->successLine($file);
         }
     }
