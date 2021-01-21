@@ -49,23 +49,23 @@ class Section implements ConfigInterface
      * Section constructor.
      *
      * @param ConfigInterface $parent
-     * @param string          $name
-     * @param string          $env
+     * @param string $name
+     * @param string $env
      * @param array &         $loadedFiles
      *
      * @throws UnableToReadConfigFile
      */
-    public function __construct (ConfigInterface $parent, string $name, string $env, &$loadedFiles)
+    public function __construct(ConfigInterface $parent, string $name, string $env, &$loadedFiles)
     {
-        $this->parent      = $parent;
-        $this->name        = $name;
-        $this->env         = $env;
+        $this->parent = $parent;
+        $this->name = $name;
+        $this->env = $env;
         $this->loadedFiles =& $loadedFiles;
 
         $combined = [];
 
         $pattern = '{' . implode(',', $this->getPath()) . '}' . '/{*-,}{default,' . $this->env . '}.y{a,}ml';
-        $files   = glob($pattern, GLOB_BRACE);
+        $files = glob($pattern, GLOB_BRACE);
         foreach ($files as $file) {
             if ($loadedFiles !== null) {
                 $loadedFiles[] = $file;
@@ -76,8 +76,9 @@ class Section implements ConfigInterface
                     0,
                     $ndocs,
                     [
-                        '!env'  => [$this, 'callbackEnv'],
+                        '!env' => [$this, 'callbackEnv'],
                         '!path' => [$this, 'callbackPath'],
+                        '!map' => [$this, 'callbackMap'],
                     ]
                 );
             } catch (\ErrorException $e) {
@@ -95,18 +96,69 @@ class Section implements ConfigInterface
     }
 
     /**
+     * @return mixed
+     */
+    public function root(): Config
+    {
+        return $this->parent->root();
+    }
+
+    /**
      * @param string $str
      *
      * @return mixed
      */
-    public function callbackEnv (string $str)
+    public function callbackMap(string $str)
+    {
+        $args = preg_split('~\s+~', $str, 2);
+        $el = $this->root();
+        foreach (explode('/', $args[0]) as $name) {
+            if (is_array($el)) {
+                $el = $el[$name];
+            } elseif (is_object($el)) {
+                $el = $el->{$name};
+            } else {
+                throw new \RuntimeException('!map: cannot reach path ' . $args[0] . ' because ' . $name . ' is not inside an array/object');
+            }
+        }
+        $ret = [];
+        foreach ($el as $item) {
+            try {
+                $ret[] = \yaml_parse(
+                    $args[1],
+                    0,
+                    $ndocs,
+                    [
+                        '!item' => function($str) use ($item) {
+                            return $item;
+                        },
+                        '!item[host]' => function() use ($item) {
+                            return explode(':' , $item)[0];
+                        },
+                        '!item[port]' => function($default) use ($item) {
+                             return (int) (explode(':' , $item)[1] ?? $default);
+                        },
+                    ]
+                );
+            } catch (\ErrorException $e) {
+                throw YamlParseError::deriveFromError($e);
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return mixed
+     */
+    public function callbackEnv(string $str)
     {
         foreach (explode('||', $str) as $alt) {
             $alt = trim($alt);
             if (ctype_alpha(substr($alt, 0, 1))) {
                 $value = $_ENV[$alt] ?? null;
-            }
-            else {
+            } else {
                 $value = yaml_parse($alt);
             }
             if ($value !== null) {
@@ -120,7 +172,7 @@ class Section implements ConfigInterface
      *
      * @return string
      */
-    public function callbackPath (string $str)
+    public function callbackPath(string $str)
     {
         return ZERO_ROOT . '/' . ltrim($str, '/');
     }
@@ -128,7 +180,7 @@ class Section implements ConfigInterface
     /**
      * @return array
      */
-    public function getPath (): array
+    public function getPath(): array
     {
         $path = $this->parent->getPath();
         foreach ($path as &$item) {
@@ -141,7 +193,7 @@ class Section implements ConfigInterface
     /**
      * @return string
      */
-    public function getName (): string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -149,7 +201,7 @@ class Section implements ConfigInterface
     /**
      * @return array
      */
-    public function sectionsList (): array
+    public function sectionsList(): array
     {
         return array_unique(
             array_map(
@@ -168,7 +220,7 @@ class Section implements ConfigInterface
     /**
      * @return int|bool
      */
-    public function lastModified ()
+    public function lastModified()
     {
         return filemtime($this->path);
     }
@@ -179,7 +231,7 @@ class Section implements ConfigInterface
      * @return mixed|null|Section
      * @throws UnableToReadConfigFile
      */
-    public function __get (string $name)
+    public function __get(string $name)
     {
         $F = substr($name, 0, 1);
         if (ctype_alpha($F) && strtoupper($F) === $F) {
@@ -198,7 +250,7 @@ class Section implements ConfigInterface
      * @param string $name
      * @param        $value
      */
-    public function __set (string $name, $value): void
+    public function __set(string $name, $value): void
     {
         $this->data[$name] = $value;
     }
@@ -208,7 +260,7 @@ class Section implements ConfigInterface
      *
      * @return mixed|null
      */
-    public function getValue (string $name)
+    public function getValue(string $name)
     {
         return $this->data[$name] ?? null;
     }
@@ -216,7 +268,7 @@ class Section implements ConfigInterface
     /**
      * @return array
      */
-    public function toArray (): array
+    public function toArray(): array
     {
         return $this->data;
     }
@@ -224,7 +276,7 @@ class Section implements ConfigInterface
     /**
      * @return bool
      */
-    public function exists (): bool
+    public function exists(): bool
     {
         return count($this->data) > 0;
     }

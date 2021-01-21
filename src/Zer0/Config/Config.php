@@ -51,6 +51,14 @@ class Config implements ConfigInterface
     }
 
     /**
+     * @return $this
+     */
+    public function root(): self
+    {
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function getLoadedFiles()
