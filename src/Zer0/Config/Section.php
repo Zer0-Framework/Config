@@ -77,6 +77,7 @@ class Section implements ConfigInterface
                     $ndocs,
                     [
                         '!env' => [$this, 'callbackEnv'],
+                        '!env_yaml' => [$this, 'callbackEnvYaml'],
                         '!path' => [$this, 'callbackPath'],
                         '!map' => [$this, 'callbackMap'],
                     ]
@@ -158,6 +159,26 @@ class Section implements ConfigInterface
             $alt = trim($alt);
             if (ctype_alpha(substr($alt, 0, 1))) {
                 $value = $_ENV[$alt] ?? null;
+            } else {
+                $value = yaml_parse($alt);
+            }
+            if ($value !== null) {
+                return $value;
+            }
+        }
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return mixed
+     */
+    public function callbackEnvYaml(string $str)
+    {
+        foreach (explode('||', $str) as $alt) {
+            $alt = trim($alt);
+            if (ctype_alpha(substr($alt, 0, 1))) {
+                $value = yaml_parse($_ENV[$alt] ?? 'null');
             } else {
                 $value = yaml_parse($alt);
             }
