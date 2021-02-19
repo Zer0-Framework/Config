@@ -24,6 +24,12 @@ final class Config extends AbstractController
      */
     public function yamlAction(...$args): void
     {
+        if ($k = array_search('--generated-file-header', $args, true)) {
+            echo "#### The file has been generated automatically\n";
+            echo "#### Date: " . date('r') . "n";
+            echo "#### DO NOT MODIFY THIS FILE MANUALLY, YOUR CHANGES WILL BE OVERWRITTEN!\n";
+            unset($args[$k]);
+        }
         [$key, $value] = $this->getSubTree(...$args);
         echo yaml_emit($value->toArray());
     }
