@@ -26,8 +26,8 @@ final class Config extends AbstractController
     {
         if ($k = array_search('--generated-file-header', $args, true)) {
             echo "#### The file has been generated automatically\n";
-            echo "#### Date: " . date('r') . "n";
-            echo "#### DO NOT MODIFY THIS FILE MANUALLY, YOUR CHANGES WILL BE OVERWRITTEN!\n";
+            echo "#### Date: " . date('r') . "\n";
+            echo "#### DO NOT MODIFY THIS FILE MANUALLY, YOUR CHANGES WILL BE OVERWRITTEN!\n\n";
             unset($args[$k]);
         }
         [$key, $value] = $this->getSubTree(...$args);
